@@ -1,0 +1,73 @@
+def permute(bits, pattern):
+    return ''.join(bits[i] for i in pattern)
+
+def xor(a, b):
+    return ''.join('1' if x != y else '0' for x, y in zip(a, b))
+
+def left_shift(bits, n):
+    return bits[n:] + bits[:n]
+
+def sbox_lookup(bits, sbox):
+    row = int(bits[0] + bits[3], 2)
+    col = int(bits[1] + bits[2], 2)
+    return format(sbox[row][col], '02b')
+
+def generate_keys(key):
+    P10 = [2, 4, 1, 6, 3, 9, 0, 8, 7, 5]
+    P8  = [5, 2, 6, 3, 7, 4, 9, 8]
+    key = permute(key, P10)
+    left, right = key[:5], key[5:]
+    left1, right1 = left_shift(left, 1), left_shift(right, 1)
+    K1 = permute(left1 + right1, P8)
+    left2, right2 = left_shift(left1, 2), left_shift(right1, 2)
+    K2 = permute(left2 + right2, P8)
+    return K1, K2
+
+def fk(bits, key):
+    EP = [3, 0, 1, 2, 1, 2, 3, 0]
+    S0 = [[1,0,3,2],[3,2,1,0],[0,2,1,3],[3,1,3,2]]
+    S1 = [[0,1,2,3],[2,0,1,3],[3,0,1,0],[2,1,0,3]]
+    P4 = [1, 3, 2, 0]
+    left, right = bits[:4], bits[4:]
+    temp = xor(permute(right, EP), key)
+    s0 = sbox_lookup(temp[:4], S0)
+    s1 = sbox_lookup(temp[4:], S1)
+    return xor(left, permute(s0 + s1, P4)) + right
+
+def sdes_encrypt_block(block, K1, K2):
+    IP = [1, 5, 2, 0, 3, 7, 4, 6]
+    IP_inv = [3, 0, 2, 4, 6, 1, 7, 5]
+    block = permute(block, IP)
+    block = fk(block, K1)
+    block = block[4:] + block[:4]
+    block = fk(block, K2)
+    return permute(block, IP_inv)
+
+def ctr_encrypt(plaintext, key, counter_start):
+    K1, K2 = generate_keys(key)
+    blocks = [plaintext[i:i+8] for i in range(0, len(plaintext), 8)]
+    ciphertext = ''
+    counter = int(counter_start, 2)
+    for block in blocks:
+        counter_bin = format(counter, '08b')
+        keystream = sdes_encrypt_block(counter_bin, K1, K2)
+        ciphertext += xor(block, keystream)
+        counter += 1
+    return ciphertext
+
+def ctr_decrypt(ciphertext, key, counter_start):
+    # Same as encryption in CTR mode
+    return ctr_encrypt(ciphertext, key, counter_start)
+
+# Test
+key = '0111111101'
+counter_start = '00000000'
+plaintext = '000000010000001000000100'
+expected_cipher = '001110000100111100110010'
+
+cipher = ctr_encrypt(plaintext, key, counter_start)
+print("Encrypted:", cipher)
+print("Matches expected:", cipher == expected_cipher)
+
+decrypted = ctr_decrypt(cipher, key, counter_start)
+print("Decrypted:", decrypted)
