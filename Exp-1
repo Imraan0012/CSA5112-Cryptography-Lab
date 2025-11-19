@@ -1,0 +1,14 @@
+# Caesar Cipher Encryption
+text = input("Enter message: ")
+key = int(input("Enter shift (1-25): "))
+encrypted = ""
+
+for c in text:
+    if c.isupper():
+        encrypted += chr((ord(c) - ord('A') + key) % 26 + ord('A'))
+    elif c.islower():
+        encrypted += chr((ord(c) - ord('a') + key) % 26 + ord('a'))
+    else:
+        encrypted += c
+
+print("Encrypted message:", encrypted)
