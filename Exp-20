@@ -1,0 +1,61 @@
+def xor_bytes(a, b):
+    return bytes(x ^ y for x, y in zip(a, b))
+
+class CBC:
+    def __init__(self, encrypt_block, decrypt_block):
+        self.encrypt_block = encrypt_block
+        self.decrypt_block = decrypt_block
+
+    def encrypt(self, blocks, iv):
+        ciphertext = []
+        prev = iv
+        for block in blocks:
+            xored = xor_bytes(block, prev)
+            enc = self.encrypt_block(xored)
+            ciphertext.append(enc)
+            prev = enc
+        return ciphertext
+
+    def decrypt(self, ciphertext, iv):
+        plaintext = []
+        prev = iv
+        for block in ciphertext:
+            dec = self.decrypt_block(block)
+            xored = xor_bytes(dec, prev)
+            plaintext.append(xored)
+            prev = block
+        return plaintext
+
+# Dummy block cipher (for demonstration)
+def dummy_encrypt(block):
+    return xor_bytes(block, b'\x0F' * len(block))
+
+def dummy_decrypt(block):
+    return xor_bytes(block, b'\x0F' * len(block))
+
+cbc = CBC(dummy_encrypt, dummy_decrypt)
+
+# Simulated 3 blocks of plaintext
+P1 = b'BLOCKONE'
+P2 = b'BLOCKTWO'
+P3 = b'BLOCKTHR'
+blocks = [P1, P2, P3]
+iv = b'INITVCTR'
+
+# First test: inject error in C2
+ct = cbc.encrypt(blocks, iv)
+ct[1] = b'ERROR002'  # Inject error in C2
+pt = cbc.decrypt(ct, iv)
+
+print("CBC Decrypted Blocks:")
+for i, b in enumerate(pt, 1):
+    print(f"P{i}: {b}")
+
+# Second test: inject different error in C2
+ct = cbc.encrypt(blocks, iv)
+ct[1] = b'ERROR001'  # Inject error in C2
+pt = cbc.decrypt(ct, iv)
+
+print("\nCBC Decrypted Blocks:")
+for i, b in enumerate(pt, 1):
+    print(f"P{i}: {b}")
