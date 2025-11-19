@@ -1,0 +1,57 @@
+import string
+from collections import Counter
+from itertools import permutations
+
+# English letter frequency order (most to least common)
+ENGLISH_FREQ_ORDER = 'ETAOINSHRDLCUMWFGYPBVKJXQZ'
+
+def clean_text(text):
+    return ''.join(filter(str.isalpha, text.upper()))
+
+def frequency_attack(ciphertext, top_n=10):
+    ciphertext = clean_text(ciphertext)
+    cipher_freq = Counter(ciphertext)
+    most_common = [pair[0] for pair in cipher_freq.most_common()]
+    
+    # Pad with missing letters
+    for letter in ENGLISH_FREQ_ORDER:
+        if letter not in most_common:
+            most_common.append(letter)
+    most_common = most_common[:26]
+
+    # Generate top N permutations of likely mappings
+    guesses = []
+    for perm in permutations(ENGLISH_FREQ_ORDER[:len(most_common)], len(most_common)):
+        mapping = dict(zip(most_common, perm))
+        plaintext = ''.join(mapping.get(c, c) for c in ciphertext)
+        score = score_plaintext(plaintext)
+        guesses.append((score, plaintext))
+        if len(guesses) >= top_n * 5:  # Generate more to sort later
+            break
+
+    guesses.sort(reverse=True)
+    return guesses[:top_n]
+
+def score_plaintext(text):
+    # Score based on frequency similarity to English
+    freq = Counter(text)
+    total = sum(freq.values())
+    if total == 0:
+        return 0
+    score = 0
+    for i, letter in enumerate(ENGLISH_FREQ_ORDER):
+        observed = freq.get(letter, 0) / total
+        expected_rank = i
+        actual_rank = sorted(freq, key=freq.get, reverse=True).index(letter) if letter in freq else 25
+        score -= abs(expected_rank - actual_rank)
+    return score
+
+# Example usage
+if __name__ == "__main__":
+    ciphertext = "ZOLSS PZ AOL SHYBA"  # Encrypted "HELLO IS THE PARTY"
+    top_n = 10
+    results = frequency_attack(ciphertext, top_n)
+
+    print(f"Top {top_n} plaintext guesses:")
+    for i, (score, guess) in enumerate(results, 1):
+        print(f"{i:2d}. Score={score:4.1f} → {guess}")
