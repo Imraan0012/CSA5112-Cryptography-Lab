@@ -1,0 +1,33 @@
+import random
+
+def simulate_sha3_capacity_fill():
+    total_lanes = 25
+    rate_lanes = 16  # 1024 bits / 64 bits per lane
+    capacity_lanes = 9  # 1600 - 1024 = 576 bits = 9 lanes
+
+    # Initialize state: first 16 lanes nonzero, last 9 zero
+    state = [1] * rate_lanes + [0] * capacity_lanes
+    zero_indices = list(range(rate_lanes, total_lanes))
+
+    blocks = 0
+    while any(state[i] == 0 for i in zero_indices):
+        blocks += 1
+        # Simulate XORing a new message block with 16 nonzero lanes
+        new_block = [random.getrandbits(64) for _ in range(rate_lanes)]
+        for i in range(rate_lanes):
+            # XOR into state[i]
+            state[i] ^= new_block[i]
+
+        # Now simulate diffusion: XOR each rate lane into a random capacity lane
+        for i in range(rate_lanes):
+            target = random.choice(zero_indices)
+            state[target] ^= state[i]
+
+    return blocks
+
+# Run simulation multiple times to get average
+trials = 1000
+results = [simulate_sha3_capacity_fill() for _ in range(trials)]
+average_blocks = sum(results) / trials
+
+print(f"Average blocks needed to fill all capacity lanes: {average_blocks:.2f}")
