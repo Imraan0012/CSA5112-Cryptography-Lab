@@ -1,0 +1,40 @@
+import string
+from itertools import permutations
+from collections import Counter
+
+# Approximate English letter frequency order (most to least common)
+english_freq_order = ['E', 'T', 'A', 'O', 'I', 'N', 'S', 'H', 'R', 'D', 'L', 'C', 'U', 'M', 'W', 'F', 'G', 'Y', 'P', 'B', 'V', 'K', 'J', 'X', 'Q', 'Z']
+
+def build_substitution_map(ciphertext):
+    freq = Counter(c for c in ciphertext.upper() if c.isalpha())
+    return [item[0] for item in freq.most_common()]
+
+def score_plaintext(text):
+    # Simple scoring: count common English bigrams
+    bigrams = ['TH', 'HE', 'IN', 'ER', 'AN', 'RE', 'ND', 'ON', 'EN', 'AT']
+    score = sum(text.count(bigram) for bigram in bigrams)
+    return score
+
+def generate_candidates(ciphertext, top_n=10):
+    cipher_order = build_substitution_map(ciphertext)
+    candidates = []
+
+    # Try permutations of top 7 letters mapped to top 7 English letters
+    for perm in permutations(english_freq_order[:7], len(cipher_order[:7])):
+        mapping = dict(zip(cipher_order[:7], perm))
+        # Fill in rest of alphabet with identity mapping
+        full_map = {c: mapping.get(c, c) for c in string.ascii_uppercase}
+        plaintext = ''.join(full_map.get(c, c) for c in ciphertext.upper())
+        score = score_plaintext(plaintext)
+        candidates.append((plaintext, score))
+
+    candidates.sort(key=lambda x: x[1], reverse=True)
+    return candidates[:top_n]
+
+# Example usage
+ciphertext = "GUVF VF N FRPERG ZRFFNTR"
+top_plaintexts = generate_candidates(ciphertext, top_n=10)
+
+print("Top 10 guesses:")
+for i, (text, score) in enumerate(top_plaintexts, 1):
+    print(f"{i}. Score:{score:.4f}: {text}")
