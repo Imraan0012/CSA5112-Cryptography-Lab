@@ -1,0 +1,10 @@
+import math
+
+# Total permutations of 25 letters (assuming all are unique and used once)
+key_space = math.factorial(25)
+
+# Convert to approximate power of 2
+power_of_2 = math.log2(key_space)
+
+print(f"Total possible keys: {key_space:.2e}")
+print(f"Approximate as 2^{int(power_of_2)}")
