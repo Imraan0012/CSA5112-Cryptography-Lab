@@ -1,0 +1,48 @@
+from collections import Counter
+
+# Expected English letter frequencies (approximate)
+english_freq = {
+    'E': 12.7, 'T': 9.1, 'A': 8.2, 'O': 7.5, 'I': 7.0, 'N': 6.7,
+    'S': 6.3, 'H': 6.1, 'R': 6.0, 'D': 4.3, 'L': 4.0, 'C': 2.8,
+    'U': 2.8, 'M': 2.4, 'W': 2.4, 'F': 2.2, 'G': 2.0, 'Y': 2.0,
+    'P': 1.9, 'B': 1.5, 'V': 1.0, 'K': 0.8, 'J': 0.2, 'X': 0.2,
+    'Q': 0.1, 'Z': 0.1
+}
+
+def shift_text(text, key):
+    result = ''
+    for c in text:
+        if c.isalpha():
+            base = ord('A') if c.isupper() else ord('a')
+            result += chr((ord(c) - base + key) % 26 + base)
+        else:
+            result += c
+    return result
+
+def score_text(text):
+    text = ''.join(c for c in text.upper() if c.isalpha())
+    freq = Counter(text)
+    total = sum(freq.values())
+    score = 0
+    for char in english_freq:
+        observed = freq.get(char, 0) / total if total > 0 else 0
+        expected = english_freq[char] / 100
+        score -= abs(observed - expected)
+    return score
+
+def freq_attack(ciphertext, top_n=10):
+    candidates = []
+    for key in range(26):
+        decrypted = shift_text(ciphertext, key)
+        score = score_text(decrypted)
+        candidates.append((key, decrypted, score))
+    candidates.sort(key=lambda x: x[2], reverse=True)
+    return candidates[:top_n]
+
+# Example usage
+ciphertext = "GUVF VF N FRPERG ZRFFNTR"
+top_plaintexts = freq_attack(ciphertext, top_n=10)
+
+print("Top 10 guesses:")
+for rank, (key, text, score) in enumerate(top_plaintexts, 1):
+    print(f"{rank}. Key={key}: {text}")
