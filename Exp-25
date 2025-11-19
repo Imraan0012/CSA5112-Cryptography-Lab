@@ -1,0 +1,44 @@
+import math
+
+def extended_gcd(a, b):
+    if b == 0:
+        return a, 1, 0
+    else:
+        gcd, x1, y1 = extended_gcd(b, a % b)
+        x, y = y1, x1 - (a // b) * y1
+        return gcd, x, y
+
+def mod_inverse(e, phi):
+    gcd, x, _ = extended_gcd(e, phi)
+    if gcd != 1:
+        raise Exception("No modular inverse")
+    return x % phi
+
+# Given public key
+e = 31
+n = 3599
+
+# Suppose someone tells us a plaintext block m shares a factor with n
+m = 59  # Let's say gcd(m, n) = 59
+
+# Step 1: Factor n
+p = math.gcd(m, n)
+q = n // p
+phi = (p - 1) * (q - 1)
+
+# Step 2: Recover private key
+d = mod_inverse(e, phi)
+
+print("Recovered factors: p =", p, ", q =", q)
+print("Recovered private key d =", d)
+
+# Step 3: Decrypt a ciphertext block
+def rsa_decrypt(c, d, n):
+    return pow(c, d, n)
+
+# Example ciphertext block
+ciphertext = pow(m, e, n)
+decrypted = rsa_decrypt(ciphertext, d, n)
+
+print("Ciphertext:", ciphertext)
+print("Decrypted:", decrypted)
