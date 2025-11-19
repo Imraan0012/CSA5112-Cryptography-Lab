@@ -1,0 +1,40 @@
+import random
+import string
+
+def generate_key(length):
+    return [random.randint(0, 26) for _ in range(length)]
+
+def char_to_num(c):
+    return ord(c.upper()) - ord('A')
+
+def num_to_char(n):
+    return chr((n % 26) + ord('A'))
+
+def encrypt_otp_vigenere(plaintext, key):
+    plaintext = ''.join(filter(str.isalpha, plaintext.upper()))
+    ciphertext = ''
+    for i, c in enumerate(plaintext):
+        shift = key[i]
+        encrypted = (char_to_num(c) + shift) % 26
+        ciphertext += num_to_char(encrypted)
+    return ciphertext
+
+def decrypt_otp_vigenere(ciphertext, key):
+    plaintext = ''
+    for i, c in enumerate(ciphertext):
+        shift = key[i]
+        decrypted = (char_to_num(c) - shift) % 26
+        plaintext += num_to_char(decrypted)
+    return plaintext
+
+# Example usage
+plaintext = "HELLO"
+key = generate_key(len(plaintext))
+
+ciphertext = encrypt_otp_vigenere(plaintext, key)
+decrypted = decrypt_otp_vigenere(ciphertext, key)
+
+print("Plaintext :", plaintext)
+print("Key       :", key)
+print("Ciphertext:", ciphertext)
+print("Decrypted :", decrypted)
