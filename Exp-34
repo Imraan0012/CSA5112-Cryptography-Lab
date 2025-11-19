@@ -1,0 +1,59 @@
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
+
+BLOCK_SIZE = 16  # AES block size in bytes
+
+def pad_custom(data):
+    pad_len = BLOCK_SIZE - (len(data) % BLOCK_SIZE)
+    if pad_len == 0:
+        pad_len = BLOCK_SIZE
+    return data + b'\x80' + b'\x00' * (pad_len - 1)
+
+def unpad_custom(data):
+    if b'\x80' not in data:
+        return data
+    index = data.rfind(b'\x80')
+    return data[:index]
+
+def encrypt_ecb(key, plaintext):
+    cipher = AES.new(key, AES.MODE_ECB)
+    padded = pad_custom(plaintext)
+    return cipher.encrypt(padded)
+
+def decrypt_ecb(key, ciphertext):
+    cipher = AES.new(key, AES.MODE_ECB)
+    decrypted = cipher.decrypt(ciphertext)
+    return unpad_custom(decrypted)
+
+def encrypt_cbc(key, plaintext, iv):
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    padded = pad_custom(plaintext)
+    return cipher.encrypt(padded)
+
+def decrypt_cbc(key, ciphertext, iv):
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    decrypted = cipher.decrypt(ciphertext)
+    return unpad_custom(decrypted)
+
+def encrypt_cfb(key, plaintext, iv):
+    cipher = AES.new(key, AES.MODE_CFB, iv, segment_size=128)
+    padded = pad_custom(plaintext)
+    return cipher.encrypt(padded)
+
+def decrypt_cfb(key, ciphertext, iv):
+    cipher = AES.new(key, AES.MODE_CFB, iv, segment_size=128)
+    decrypted = cipher.decrypt(ciphertext)
+    return unpad_custom(decrypted)
+
+# Example usage
+key = get_random_bytes(16)
+iv = get_random_bytes(16)
+plaintext = b"Hello AES block modes!"
+
+ecb = encrypt_ecb(key, plaintext)
+cbc = encrypt_cbc(key, plaintext, iv)
+cfb = encrypt_cfb(key, plaintext, iv)
+
+print("ECB decrypted:", decrypt_ecb(key, ecb))
+print("CBC decrypted:", decrypt_cbc(key, cbc, iv))
+print("CFB decrypted:", decrypt_cfb(key, cfb, iv))
