@@ -1,0 +1,20 @@
+from Crypto.Cipher import DES
+from Crypto.Random import get_random_bytes
+from Crypto.Util.Padding import pad, unpad
+
+# Key must be 8 bytes (56-bit DES key + 8 parity bits)
+key = b'secretky'  # 8-byte key
+cipher = DES.new(key, DES.MODE_ECB)
+
+# Plaintext must be padded to 8-byte blocks
+plaintext = b'Message1'  # 8 bytes = 1 block
+padded = pad(plaintext, DES.block_size)
+
+# Encrypt
+ciphertext = cipher.encrypt(padded)
+print("Ciphertext:", ciphertext.hex())
+
+# Decrypt
+decipher = DES.new(key, DES.MODE_ECB)
+decrypted = unpad(decipher.decrypt(ciphertext), DES.block_size)
+print("Decrypted:", decrypted.decode())
