@@ -1,0 +1,45 @@
+import numpy as np
+from sympy import Matrix
+
+MOD = 26
+
+def text_to_vector(text):
+    return [ord(c.upper()) - ord('A') for c in text]
+
+def vector_to_text(vec):
+    return ''.join(chr(int(round(x)) % MOD + ord('A')) for x in vec)
+
+def encrypt_block(block, key_matrix):
+    vec = np.array(text_to_vector(block)).reshape(-1, 1)
+    result = key_matrix.dot(vec) % MOD
+    return vector_to_text(result.flatten())
+
+def decrypt_block(block, key_matrix):
+    inv_key = Matrix(key_matrix).inv_mod(MOD)
+    vec = np.array(text_to_vector(block)).reshape(-1, 1)
+    result = np.array(inv_key).dot(vec) % MOD
+    return vector_to_text(result.flatten())
+
+def recover_key(plaintext_blocks, ciphertext_blocks):
+    P = Matrix([text_to_vector(b) for b in plaintext_blocks]).T
+    C = Matrix([text_to_vector(b) for b in ciphertext_blocks]).T
+    P_inv = P.inv_mod(MOD)
+    K = (C * P_inv) % MOD
+    return np.array(K).astype(int)
+
+# Example: Chosen plaintext and ciphertext
+plaintext_blocks = ['HE', 'LP']
+ciphertext_blocks = ['RI', 'JV']
+
+# Recover key
+key_matrix = recover_key(plaintext_blocks, ciphertext_blocks)
+print("Recovered key matrix:\n", key_matrix)
+
+# Test encryption
+test = 'GO'
+cipher = encrypt_block(test, key_matrix)
+print(f"Encrypting '{test}' → '{cipher}'")
+
+# Test decryption
+decrypted = decrypt_block(cipher, key_matrix)
+print(f"Decrypting '{cipher}' → '{decrypted}'")
