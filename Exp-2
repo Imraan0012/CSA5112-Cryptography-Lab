@@ -1,0 +1,14 @@
+# Monoalphabetic Substitution Cipher
+key = "QWERTYUIOPASDFGHJKLZXCVBNM"
+text = input("Enter message: ")
+encrypted = ""
+
+for ch in text:
+    if ch.isupper():
+        encrypted += key[ord(ch) - ord('A')]
+    elif ch.islower():
+        encrypted += key[ord(ch.upper()) - ord('A')].lower()
+    else:
+        encrypted += ch
+
+print("Encrypted message:", encrypted)
