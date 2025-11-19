@@ -1,0 +1,29 @@
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+import os
+
+BLOCK_SIZE = 16  # AES block size in bytes
+
+def cbc_mac(key, message):
+    cipher = AES.new(key, AES.MODE_CBC, iv=bytes(BLOCK_SIZE))  # IV = 0
+    padded = pad(message, BLOCK_SIZE)
+    ciphertext = cipher.encrypt(padded)
+    return ciphertext[-BLOCK_SIZE:]  # Last block is the MAC
+
+def xor_bytes(a, b):
+    return bytes(x ^ y for x, y in zip(a, b))
+
+# Setup
+key = os.urandom(16)
+X = b"Attack at dawn!"  # 16 bytes = 1 block
+T = cbc_mac(key, X)
+
+# Construct forged message: X || (X ⊕ T)
+X2 = xor_bytes(X, T)
+forged_message = X + X2
+T_forged = cbc_mac(key, forged_message)
+
+# Show results
+print("Original MAC:", T.hex())
+print("Forged MAC :", T_forged.hex())
+print("MACs match :", T == T_forged)
