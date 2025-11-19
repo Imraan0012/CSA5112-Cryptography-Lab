@@ -1,0 +1,35 @@
+import string
+from collections import Counter
+from itertools import permutations
+
+# English letter frequency (most to least common)
+ENGLISH_FREQ_ORDER = 'ETAOINSHRDLCUMWFGYPBVKJXQZ'
+
+def frequency_attack(ciphertext, top_n=10):
+    ciphertext = ''.join(filter(str.isalpha, ciphertext.upper()))
+    cipher_freq = Counter(ciphertext)
+    most_common = [pair[0] for pair in cipher_freq.most_common()]
+    
+    # Pad with missing letters
+    for letter in ENGLISH_FREQ_ORDER:
+        if letter not in most_common:
+            most_common.append(letter)
+    most_common = most_common[:26]
+
+    # Generate top N permutations of likely mappings
+    guesses = []
+    for perm in permutations(ENGLISH_FREQ_ORDER[:len(most_common)], len(most_common)):
+        mapping = dict(zip(most_common, perm))
+        plaintext = ''.join(mapping.get(c, c) for c in ciphertext)
+        guesses.append(plaintext)
+        if len(guesses) >= top_n:
+            break
+    return guesses
+
+# Example usage
+ciphertext = "ZOLSS PZ AOL SHYBA"
+top_guesses = frequency_attack(ciphertext, top_n=10)
+
+print("Top plaintext guesses:")
+for i, guess in enumerate(top_guesses, 1):
+    print(f"{i:2d}: {guess}")
