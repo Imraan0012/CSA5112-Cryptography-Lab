@@ -1,0 +1,28 @@
+from collections import Counter
+
+def freq(text):
+    return Counter(c for c in text if c.isalpha())
+
+def sub(text, mapping):
+    return ''.join(mapping.get(c, c) for c in text)
+
+# Ciphertext to analyze
+cipher = """shxqshxqdr etmldtrdhr etmd tesspmfere wed uhseesaa
+cozords tre edemdr ehdr otrsuhdc tomdcuLoadbepd
+tfmaller nmsrethh ydn tefey euhuy tesse toressloefndey cdm the cee tchqt terth yyy uyee heg"""
+
+# Frequency analysis
+top_frequencies = freq(cipher).most_common(10)
+print("Top frequencies:", top_frequencies)
+
+# Manual mapping based on frequency guesses
+mapping = {
+    's': 'e', 'h': 't', 'x': 'h', 'q': 'a', 'd': 's',
+    'r': 'r', 'e': 'o', 't': 'n', 'm': 'i', 'l': 'c',
+    'u': 'd', 'c': 'l', 'o': 'u', 'a': 'm', 'n': 'g',
+    'y': 'y', 'p': 'b', 'f': 'v', 'b': 'p'
+}
+
+# Apply substitution
+decrypted = sub(cipher, mapping)
+print("Decrypted (partial):\n", decrypted)
