@@ -1,0 +1,51 @@
+def generate_matrix(keyword):
+    keyword = keyword.upper().replace('J', 'I')
+    seen = set()
+    matrix = []
+
+    for char in keyword:
+        if char not in seen and char.isalpha():
+            seen.add(char)
+            matrix.append(char)
+
+    for char in 'ABCDEFGHIKLMNOPQRSTUVWXYZ':
+        if char not in seen:
+            seen.add(char)
+            matrix.append(char)
+
+    return [matrix[i:i+5] for i in range(0, 25, 5)]
+
+def find_position(matrix, char):
+    for i in range(5):
+        for j in range(5):
+            if matrix[i][j] == char:
+                return (i, j)
+    return None
+
+def decrypt(matrix, pair):
+    pos1 = find_position(matrix, pair[0])
+    pos2 = find_position(matrix, pair[1])
+    r1, c1 = pos1
+    r2, c2 = pos2
+
+    if r1 == r2:
+        return matrix[r1][(c1 - 1) % 5] + matrix[r2][(c2 - 1) % 5]
+    elif c1 == c2:
+        return matrix[(r1 - 1) % 5][c1] + matrix[(r2 - 1) % 5][c2]
+    else:
+        return matrix[r1][c2] + matrix[r2][c1]
+
+def playfair_decrypt(keyword, ciphertext):
+    matrix = generate_matrix(keyword)
+    text = ''.join(c for c in ciphertext.upper() if c.isalpha()).replace('J', 'I')
+
+    plaintext = ''
+    for i in range(0, len(text), 2):
+        pair = text[i:i+2]
+        plaintext += decrypt(matrix, pair)
+    return plaintext
+
+# Example usage
+keyword = "ENEMY"
+ciphertext = "CWCZ URSE DAHTE VMTU HEYS OWTIT CUSY CLUD OGMU YRMY EAMU DSOI SNOM SYWE DAMY CUSY"
+print("Decrypted message:", playfair_decrypt(keyword, ciphertext))
