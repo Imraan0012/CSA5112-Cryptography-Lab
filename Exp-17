@@ -1,0 +1,25 @@
+def get_round_keys(key_64bit):
+    round_keys = []
+    LEFT_SHIFT_SCHEDULE = [1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1]
+    for shift in LEFT_SHIFT_SCHEDULE:
+        key_64bit = key_64bit[shift:] + key_64bit[:shift]
+        round_keys.append(key_64bit[:48])  # Simplified: no PC-2 compression
+    return round_keys
+
+def xor_bits(a, b):
+    return ''.join(str(int(x) ^ int(y)) for x, y in zip(a, b))
+
+def des_decrypt(ciphertext_64bit, key_64bit):
+    round_keys = get_round_keys(key_64bit)
+    round_keys.reverse()  # Reverse for decryption
+    block = ciphertext_64bit
+    for rk in round_keys:
+        block = xor_bits(block[:48], rk) + block[48:]  # Simplified round
+    return block
+
+# Example usage
+key = '0001001100110100010101110111100110011011101111001101111111110001'[:56]  # 56-bit key
+ciphertext = '1100101011110000101010101010101010101010101010101010101010101010'
+
+plaintext = des_decrypt(ciphertext, key)
+print("Decrypted plaintext (binary):", plaintext)
