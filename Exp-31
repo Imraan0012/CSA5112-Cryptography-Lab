@@ -1,0 +1,44 @@
+from Crypto.Cipher import AES, DES
+from Crypto.Random import get_random_bytes
+
+def left_shift_one_bit(block):
+    shifted = int.from_bytes(block, 'big') << 1
+    shifted &= (1 << len(block) * 8) - 1  # trim to block size
+    return shifted.to_bytes(len(block), 'big')
+
+def xor_bytes(a, b):
+    return bytes(x ^ y for x, y in zip(a, b))
+
+def generate_cmac_subkeys(key, block_size):
+    if block_size == 16:  # 128 bits
+        cipher = AES.new(key, AES.MODE_ECB)
+        Rb = 0x87
+    elif block_size == 8:  # 64 bits
+        cipher = DES.new(key, DES.MODE_ECB)
+        Rb = 0x1B
+    else:
+        raise ValueError("Unsupported block size")
+
+    zero_block = bytes(block_size)
+    L = cipher.encrypt(zero_block)
+
+    K1 = left_shift_one_bit(L)
+    if L[0] & 0x80:
+        K1 = xor_bytes(K1, bytes([Rb] + [0] * (block_size - 1)))
+
+    K2 = left_shift_one_bit(K1)
+    if K1[0] & 0x80:
+        K2 = xor_bytes(K2, bytes([Rb] + [0] * (block_size - 1)))
+
+    return K1, K2
+
+# Example usage
+key_128 = get_random_bytes(16)
+K1_128, K2_128 = generate_cmac_subkeys(key_128, 16)
+print("128-bit K1:", K1_128.hex())
+print("128-bit K2:", K2_128.hex())
+
+key_64 = get_random_bytes(8)
+K1_64, K2_64 = generate_cmac_subkeys(key_64, 8)
+print("64-bit K1 :", K1_64.hex())
+print("64-bit K2 :", K2_64.hex())
