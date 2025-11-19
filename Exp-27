@@ -1,0 +1,29 @@
+def rsa_encrypt(m, e, n):
+    return pow(m, e, n)
+
+def rsa_decrypt(c, d, n):
+    return pow(c, d, n)
+
+# Simulated RSA public key (large n not needed for demo)
+e = 17
+n = 3233  # n = 61 * 53
+
+# Build codebook: letter → ciphertext
+char_to_int = {chr(i + 65): i for i in range(26)}  # A=0, ..., Z=25
+int_to_char = {i: chr(i + 65) for i in range(26)}
+
+codebook = {}
+for i in range(26):
+    c = rsa_encrypt(i, e, n)
+    codebook[c] = i
+
+# Simulate intercepted ciphertext (e.g., "HELLO")
+plaintext = "HELLO"
+ciphertext = [rsa_encrypt(char_to_int[ch], e, n) for ch in plaintext]
+
+# Attacker decrypts using codebook
+recovered = ''.join(int_to_char[codebook[c]] for c in ciphertext)
+
+print("Original:", plaintext)
+print("Ciphertext:", ciphertext)
+print("Recovered:", recovered)
