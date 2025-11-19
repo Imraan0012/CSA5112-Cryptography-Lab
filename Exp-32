@@ -1,0 +1,24 @@
+from Crypto.Signature import DSS
+from Crypto.Hash import SHA256
+from Crypto.PublicKey import DSA
+from Crypto.Random import get_random_bytes
+
+# Generate DSA key
+key = DSA.generate(1024)
+
+# Message
+message = b"Same message"
+
+# Hash
+h = SHA256.new(message)
+
+# Sign twice
+signer1 = DSS.new(key, 'fips-186-3')
+signature1 = signer1.sign(h)
+
+signer2 = DSS.new(key, 'fips-186-3')
+signature2 = signer2.sign(h)
+
+print("Signature 1:", signature1.hex())
+print("Signature 2:", signature2.hex())
+print("Signatures match:", signature1 == signature2)
