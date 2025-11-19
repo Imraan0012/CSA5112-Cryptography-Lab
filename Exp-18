@@ -1,0 +1,31 @@
+# Left circular shift
+def left_shift(bits, shift):
+    return bits[shift:] + bits[:shift]
+
+# Shift schedule for 16 DES rounds
+shift_schedule = [1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1]
+
+def generate_subkeys(initial_key):
+    # Remove parity bits (simplified: take first 56 bits)
+    key_56 = initial_key[:56]
+    c = key_56[:28]
+    d = key_56[28:]
+    subkeys = []
+
+    for shift in shift_schedule:
+        c = left_shift(c, shift)
+        d = left_shift(d, shift)
+        combined = c + d
+        # Simplified permutation: take bits 2–3 and 24 onward
+        subkey = combined[2:4] + combined[24:]
+        subkeys.append(subkey)
+
+    return subkeys
+
+# Example 64-bit key
+initial_key = '0111111001111111000000001111111100000000111111110000000011111111'
+
+# Generate and print subkeys
+subkeys = generate_subkeys(initial_key)
+for i, k in enumerate(subkeys, 1):
+    print(f"Round {i:2}: {k}")
