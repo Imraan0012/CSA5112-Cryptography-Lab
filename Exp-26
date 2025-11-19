@@ -1,0 +1,45 @@
+def extended_gcd(a, b):
+    if b == 0:
+        return a, 1, 0
+    else:
+        gcd, x1, y1 = extended_gcd(b, a % b)
+        x, y = y1, x1 - (a // b) * y1
+        return gcd, x, y
+
+def mod_inverse(e, phi):
+    gcd, x, _ = extended_gcd(e, phi)
+    if gcd != 1:
+        raise Exception("No modular inverse")
+    return x % phi
+
+# Bob's original RSA setup
+p, q = 61, 53
+n = p * q
+phi = (p - 1) * (q - 1)
+e = 17
+d = mod_inverse(e, phi)
+
+# Bob leaks d
+print("Leaked private key d =", d)
+
+# Attacker uses e and d to compute phi(n)
+# ed ≡ 1 mod phi(n) → phi(n) = (ed - 1) // k for some k
+ed_minus_1 = e * d - 1
+possible_phis = [k for k in range(1, ed_minus_1 + 1) if ed_minus_1 % k == 0]
+
+# Try factoring n using guessed phi
+for k in possible_phis:
+    phi_guess = ed_minus_1 // k
+    # Try solving for p and q from phi and n
+    a = 1
+    b = -(n - phi_guess + 1)
+    c = n
+    discriminant = b**2 - 4*a*c
+    if discriminant >= 0:
+        sqrt_d = int(discriminant**0.5)
+        if sqrt_d * sqrt_d == discriminant:
+            p1 = (-b + sqrt_d) // 2
+            q1 = (-b - sqrt_d) // 2
+            if p1 * q1 == n:
+                print("Recovered p =", p1, "q =", q1)
+                break
