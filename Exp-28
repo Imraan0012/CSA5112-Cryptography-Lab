@@ -1,0 +1,23 @@
+def mod_exp(base, exp, mod):
+    return pow(base, exp, mod)
+
+# Public parameters
+q = 353  # large prime
+a = 3    # primitive root modulo q
+
+# Alice and Bob's secret keys
+alice_secret = 97
+bob_secret = 233
+
+# Exchange
+alice_public = mod_exp(a, alice_secret, q)
+bob_public = mod_exp(a, bob_secret, q)
+
+# Shared key
+alice_shared = mod_exp(bob_public, alice_secret, q)
+bob_shared = mod_exp(alice_public, bob_secret, q)
+
+print("Alice's public:", alice_public)
+print("Bob's public:", bob_public)
+print("Shared key (Alice):", alice_shared)
+print("Shared key (Bob):", bob_shared)
